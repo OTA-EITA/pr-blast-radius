@@ -1,4 +1,5 @@
-import { appendFileSync, readFileSync } from "node:fs";
+import { appendFileSync, readFileSync, realpathSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 import { analyze, riskRank } from "./analyze.js";
 import { GitHub } from "./github.js";
 import { marker, renderComment } from "./report.js";
@@ -87,8 +88,17 @@ export async function run({ env, log, fetchImpl }) {
     : 0;
 }
 
+/** @param {string | undefined} argv1 */
+function isEntryPoint(argv1) {
+  try {
+    return argv1 !== undefined && pathToFileURL(realpathSync(argv1)).href === import.meta.url;
+  } catch {
+    return false;
+  }
+}
+
 /* node:coverage ignore next 9 */
-if (import.meta.url === `file://${process.argv[1] ?? ""}`) {
+if (isEntryPoint(process.argv[1])) {
   run({ env: process.env, log: (s) => process.stdout.write(s) }).then(
     (code) => (process.exitCode = code),
     (err) => {
