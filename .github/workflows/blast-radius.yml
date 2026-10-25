@@ -1,0 +1,23 @@
+name: blast-radius
+
+# Runs this action on its own pull requests. It reads the diff through the API
+# and never checks out the pull request, so `pull_request` (not
+# `pull_request_target`) is enough; on forks the token is read-only and the
+# result goes to the job summary instead.
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  blast-radius:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # The base branch's copy of the action, so a pull request can't change the code that judges it.
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - uses: ./
