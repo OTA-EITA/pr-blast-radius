@@ -5,8 +5,8 @@ resource "aws_db_instance" "main" {
   instance_class      = "db.t4g.medium"
   allocated_storage   = 50
   storage_encrypted   = true
-  deletion_protection = true
-  publicly_accessible = false
+  deletion_protection = false
+  publicly_accessible = true
 }
 
 resource "aws_security_group_rule" "db_from_app" {
@@ -15,5 +15,5 @@ resource "aws_security_group_rule" "db_from_app" {
   from_port                = 5432
   to_port                  = 5432
   protocol                 = "tcp"
-  source_security_group_id = "sg-app"
+  cidr_blocks              = ["0.0.0.0/0"]
 }
