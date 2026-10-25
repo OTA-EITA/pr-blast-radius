@@ -99,16 +99,18 @@ export function analyze(files) {
     }
   }
 
-  findings.sort(
-    (a, b) => riskRank[b.risk] - riskRank[a.risk] || a.file.localeCompare(b.file) || a.line - b.line,
-  );
+  // Flipping a protection flag shows up as both "removed true" and "added false": keep one.
+  const dropped = new Set(findings.filter((f) => f.id === "protection-disabled").map((f) => f.file));
+  const kept = findings.filter((f) => !(f.id === "protection-removed" && dropped.has(f.file)));
+
+  kept.sort((a, b) => riskRank[b.risk] - riskRank[a.risk] || a.file.localeCompare(b.file) || a.line - b.line);
   const areaList = [...touched.values()].sort(
     (a, b) => riskRank[b.risk] - riskRank[a.risk] || a.title.localeCompare(b.title),
   );
   return {
-    risk: max([...areaList.map((a) => a.risk), ...findings.map((f) => f.risk)]),
+    risk: max([...areaList.map((a) => a.risk), ...kept.map((f) => f.risk)]),
     areas: areaList,
-    findings,
+    findings: kept,
     files: files.length,
   };
 }
