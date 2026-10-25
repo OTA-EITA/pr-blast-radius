@@ -51,14 +51,14 @@ test("comments, labels and writes outputs", async () => {
   assert.deepEqual(s.f.calls.at(-1)?.body, { labels: ["risk:high"] });
   assert.equal(
     readFileSync(path.join(s.dir, "output"), "utf8"),
-    "risk=high\nareas=workflows,migrations,kubernetes,terraform,dependencies\nfindings=10\n",
+    "risk=high\nareas=workflows,migrations,kubernetes,terraform,dependencies\nfindings=9\n",
   );
   assert.match(readFileSync(path.join(s.dir, "summary"), "utf8"), /Blast radius/);
   assert.match(
     s.log(),
     /::warning file=infra\/rds\.tf,line=34,title=open-to-internet::Opens access to the whole internet/,
   );
-  assert.match(s.log(), /blast radius: high \(5 area\(s\), 10 finding\(s\)\)/);
+  assert.match(s.log(), /blast radius: high \(5 area\(s\), 9 finding\(s\)\)/);
 });
 
 test("fail-on turns a risk into a failing check", async () => {

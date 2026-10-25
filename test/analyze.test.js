@@ -19,7 +19,6 @@ test("finds every risky change in the fixture with its line", () => {
       "high privileged-pod deploy/k8s/api.yaml:24",
       "high iam-wildcard-action infra/iam.tf:3",
       "high protection-disabled infra/rds.tf:12",
-      "high protection-removed infra/rds.tf:12",
       "high open-to-internet infra/rds.tf:34",
       "medium token-write .github/workflows/deploy.yml:4",
       "medium terraform-file-removed infra/old_queue.tf:0",
@@ -29,6 +28,14 @@ test("finds every risky change in the fixture with its line", () => {
   assert.deepEqual(
     r.areas.map((a) => `${a.id}:${String(a.files.length)}`),
     ["workflows:1", "migrations:1", "kubernetes:1", "terraform:3", "dependencies:1"],
+  );
+});
+
+test("reports a removed protection flag when it is not replaced by false", () => {
+  const r = one("infra/db.tf", '@@ -5,2 +5,1 @@\n-  deletion_protection = true\n   engine = "postgres"');
+  assert.deepEqual(
+    r.findings.map((f) => `${f.id}:${String(f.line)}`),
+    ["protection-removed:5"],
   );
 });
 
