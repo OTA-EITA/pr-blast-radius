@@ -1,0 +1,35 @@
+name: pr-blast-radius
+description: Show reviewers what a pull request can break - Terraform, Kubernetes, CI, IAM, network and data changes - with a risk label
+author: OTA-EITA
+branding:
+  icon: target
+  color: red
+
+inputs:
+  token:
+    description: Token used to read the pull request and write the comment and label
+    default: ${{ github.token }}
+  comment:
+    description: Post or update a comment on the pull request
+    default: "true"
+  label:
+    description: Set a risk label (risk:low, risk:medium, risk:high)
+    default: "true"
+  label-prefix:
+    description: Prefix of the risk labels
+    default: "risk:"
+  fail-on:
+    description: Fail the check at this risk or above (high, medium, low or none)
+    default: none
+
+outputs:
+  risk:
+    description: low, medium or high
+  areas:
+    description: Comma separated areas the pull request touches
+  findings:
+    description: Number of risky changes found
+
+runs:
+  using: node24
+  main: src/main.js
