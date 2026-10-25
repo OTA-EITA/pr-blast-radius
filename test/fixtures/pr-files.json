@@ -1,0 +1,41 @@
+[
+  {
+    "filename": "infra/rds.tf",
+    "status": "modified",
+    "patch": "@@ -10,7 +10,7 @@ resource \"aws_db_instance\" \"main\" {\n   engine         = \"postgres\"\n   instance_class = \"db.t4g.medium\"\n-  deletion_protection = true\n+  deletion_protection = false\n   storage_encrypted   = true\n@@ -30,3 +30,8 @@ resource \"aws_security_group_rule\" \"db\" {\n   type      = \"ingress\"\n+  from_port = 5432\n+  to_port   = 5432\n+  protocol  = \"tcp\"\n+  cidr_blocks = [\"0.0.0.0/0\"]\n }"
+  },
+  {
+    "filename": "infra/iam.tf",
+    "status": "added",
+    "patch": "@@ -0,0 +1,9 @@\n+data \"aws_iam_policy_document\" \"ci\" {\n+  statement {\n+    actions   = [\"s3:*\"]\n+    resources = [\"*\"]\n+  }\n+}"
+  },
+  {
+    "filename": "infra/old_queue.tf",
+    "status": "removed",
+    "patch": "@@ -1,3 +0,0 @@\n-resource \"aws_sqs_queue\" \"old\" {\n-  name = \"old\"\n-}"
+  },
+  {
+    "filename": "deploy/k8s/api.yaml",
+    "status": "modified",
+    "patch": "@@ -20,6 +20,9 @@ spec:\n       containers:\n         - name: api\n-          image: ghcr.io/acme/api:1.4.2\n+          image: ghcr.io/acme/api:latest\n+          securityContext:\n+            privileged: true"
+  },
+  {
+    "filename": ".github/workflows/deploy.yml",
+    "status": "modified",
+    "patch": "@@ -1,5 +1,8 @@\n on:\n-  pull_request:\n+  pull_request_target:\n permissions:\n-  contents: read\n+  contents: write\n+  id-token: write"
+  },
+  {
+    "filename": "db/migrations/20261025_drop_legacy.sql",
+    "status": "added",
+    "patch": "@@ -0,0 +1,2 @@\n+ALTER TABLE users DROP COLUMN legacy_id;\n+DROP TABLE audit_old;"
+  },
+  {
+    "filename": "package-lock.json",
+    "status": "modified"
+  },
+  {
+    "filename": "src/app/handler.ts",
+    "status": "modified",
+    "patch": "@@ -1,3 +1,3 @@\n-export const x = 1;\n+export const x = 2;"
+  }
+]
