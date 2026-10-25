@@ -10,7 +10,8 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node"],
+    "maxNodeModuleJsDepth": 0
   },
   "include": ["src", "test", "*.js"]
 }
