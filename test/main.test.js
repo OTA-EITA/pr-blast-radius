@@ -43,8 +43,9 @@ test("comments, labels and writes outputs", async () => {
   const s = setup();
   assert.equal(await s.go(), 0);
   const post = s.f.calls.find((c) => c.method === "POST" && c.path.endsWith("/comments"));
+  assert.ok(post);
   assert.match(
-    String(/** @type {any} */ (post?.body).body),
+    String(/** @type {any} */ (post.body).body),
     /^<!-- pr-blast-radius -->\n### Blast radius: 🔴 High/,
   );
   assert.deepEqual(s.f.calls.at(-1)?.body, { labels: ["risk:high"] });
