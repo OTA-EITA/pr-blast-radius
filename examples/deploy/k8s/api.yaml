@@ -1,0 +1,19 @@
+# Example only: used by the demo pull request in this repository.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: api }
+  template:
+    metadata:
+      labels: { app: api }
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/acme/api:1.4.2
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
