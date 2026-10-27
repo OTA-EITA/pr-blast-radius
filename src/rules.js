@@ -113,7 +113,7 @@ export const signals = [
     areas: ["terraform"],
     op: "+",
     pattern:
-      /publicly_accessible\s*=\s*true|acl\s*=\s*"public-read|block_public_(acls|policy)\s*=\s*false|map_public_ip_on_launch\s*=\s*true/,
+      /publicly_accessible\s*=\s*true|acl\s*=\s*"public-read|(block_public_(acls|policy)|ignore_public_acls|restrict_public_buckets)\s*=\s*false|map_public_ip_on_launch\s*=\s*true|"all(Authenticated)?Users"/,
     message: "Makes a resource publicly reachable",
   },
   {
