@@ -2,6 +2,7 @@ import { appendFileSync, readFileSync, realpathSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { analyze, riskRank } from "./analyze.js";
 import { GitHub } from "./github.js";
+import { matcher, parseList } from "./glob.js";
 import { marker, renderComment } from "./report.js";
 
 /**
@@ -45,7 +46,8 @@ export async function run({ env, log, fetchImpl }) {
   if (fetchImpl) opt.fetchImpl = fetchImpl;
   const gh = new GitHub(opt);
 
-  const result = analyze(await gh.files(pr));
+  const ignore = parseList(input(env, "ignore-paths", ""));
+  const result = analyze(await gh.files(pr), ignore.length ? { ignore: matcher(ignore) } : {});
   const body = renderComment(result);
 
   if (env.GITHUB_STEP_SUMMARY) appendFileSync(env.GITHUB_STEP_SUMMARY, body);
@@ -82,7 +84,7 @@ export async function run({ env, log, fetchImpl }) {
   }
 
   log(
-    `blast radius: ${result.risk} (${String(result.areas.length)} area(s), ${String(result.findings.length)} finding(s))\n`,
+    `blast radius: ${result.risk} (${String(result.areas.length)} area(s), ${String(result.findings.length)} finding(s)${result.ignored ? `, ${String(result.ignored)} file(s) ignored` : ""})\n`,
   );
   return failOn !== "none" &&
     riskRank[result.risk] >= riskRank[/** @type {import("./rules.js").Risk} */ (failOn)]
