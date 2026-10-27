@@ -53,3 +53,29 @@ test("every S3 public access block flag and public GCP members", () => {
   for (const line of ["  restrict_public_buckets = true", '  member = "user:ops@example.com"'])
     assert.deepEqual(ids("infra/storage.tf", line), [], line);
 });
+
+test("secrets: inherit passes every secret to a reusable workflow", () => {
+  assert.deepEqual(ids(".github/workflows/release.yml", "    secrets: inherit"), ["secrets-inherit"]);
+  assert.deepEqual(ids(".github/workflows/release.yml", "    secrets:"), []);
+  assert.deepEqual(ids("docs/secrets.yml", "    secrets: inherit"), []);
+});
+
+test("third-party actions not pinned to a commit SHA", () => {
+  const wf = ".github/workflows/ci.yml";
+  for (const line of [
+    "      - uses: some-org/setup-thing@v2",
+    "      - uses: 'some-org/setup-thing@main'",
+    "    uses: octo-org/shared/.github/workflows/build.yml@main",
+    "      - uses: some-org/setup-thing@a0853c2 # short SHA",
+  ])
+    assert.deepEqual(ids(wf, line), ["unpinned-action"], line);
+  for (const line of [
+    "      - uses: some-org/setup-thing@a0853c24544627f65ddf259abe73b1d18a591444 # v2",
+    "      - uses: actions/checkout@v5",
+    "      - uses: github/codeql-action/init@v3",
+    "      - uses: ./.github/actions/build",
+    "      - uses: docker://alpine:3.20",
+  ])
+    assert.deepEqual(ids(wf, line), [], line);
+  assert.deepEqual(ids("action.yml", "    - uses: some-org/setup-thing@v2"), ["unpinned-action"]);
+});
