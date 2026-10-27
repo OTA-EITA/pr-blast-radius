@@ -39,32 +39,49 @@ That's it: no checkout, no build, no dependencies to install.
 | `label`        | `true`         | Set `risk:low` / `risk:medium` / `risk:high` and remove the other two |
 | `label-prefix` | `risk:`        | Use your own label family                                             |
 | `fail-on`      | `none`         | Fail the check at this risk or above (`high`, `medium`, `low`)        |
+| `ignore-paths` |                | Globs to leave out, one per line or comma separated (see below)       |
 
 Outputs: `risk`, `areas` (comma separated) and `findings` (count), for example to request a review from a platform team when `risk == 'high'`.
 
+`ignore-paths` keeps test fixtures, examples or vendored code from raising false alarms:
+
+```yaml
+- uses: OTA-EITA/pr-blast-radius@v0.1.0
+  with:
+    ignore-paths: |
+      test/fixtures/**
+      vendor/
+      *.snap
+```
+
+`*` stays within a directory, `**` spans directories, a pattern without a slash matches the file name anywhere, and a trailing slash means everything under that directory. A file moved out of an ignored path is still checked, and the comment says how many files were ignored.
+
 ## What it looks for
 
-**Areas** (the table in the comment): possible secret files (`.env`, `*.pem`, `*.key`), CI/CD workflows and actions, `CODEOWNERS`, Terraform, Kubernetes manifests / Helm / Kustomize, database migrations, Dockerfiles and compose files, dependency manifests and lockfiles.
+**Areas** (the table in the comment): possible secret files (`.env`, `*.pem`, `*.key`), CI/CD workflows and actions, `CODEOWNERS`, Terraform, CloudFormation / SAM / Serverless templates (`template.yaml`, `serverless.yml`, `samconfig.toml`, `cloudformation/`, `*.cfn.yaml`), Kubernetes manifests / Helm / Kustomize, database migrations, Dockerfiles and compose files, dependency manifests, lockfiles and Dependabot / Renovate configuration.
 
 **Changes worth a closer look**, matched on the added (or removed) lines with their line numbers:
 
-| Risk | Change                                                                                                     |
-| ---- | ---------------------------------------------------------------------------------------------------------- |
-| 🔴   | IAM `*` actions or principals, administrator roles (`AdministratorAccess`, `roles/owner`, `cluster-admin`) |
-| 🔴   | `0.0.0.0/0` / `::/0`, publicly accessible databases, public S3 ACLs                                        |
-| 🔴   | `deletion_protection` / `prevent_destroy` turned off or removed, `skip_final_snapshot`, `force_destroy`    |
-| 🔴   | `DROP TABLE`, `DROP COLUMN`, `TRUNCATE` in migrations                                                      |
-| 🔴   | Privileged pods, `hostNetwork`, `hostPID`, `hostPath`                                                      |
-| 🔴   | `pull_request_target`, `permissions: write-all`                                                            |
-| 🟡   | ClusterRole / ClusterRoleBinding, `LoadBalancer` / `NodePort` services, root containers                    |
-| 🟡   | New write permissions for the workflow token (`contents`, `id-token`, `packages`, …)                       |
-| 🟡   | A deleted Terraform file, or a sensitive file whose diff GitHub did not include                            |
-| 🟢   | `:latest` image tags, new repository secrets used in a workflow                                            |
+| Risk | Change                                                                                                                                                                                               |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔴   | IAM `*` actions or principals, administrator roles (`AdministratorAccess`, `roles/owner`, `cluster-admin`)                                                                                           |
+| 🔴   | `0.0.0.0/0` / `::/0`, publicly accessible databases, public S3 ACLs and S3 public access block flags set to `false` (Terraform and CloudFormation), GCP `allUsers` / `allAuthenticatedUsers` members |
+| 🔴   | `deletion_protection` / `prevent_destroy` / `DeletionProtection` turned off or removed, `DeletionPolicy: Retain` removed, `skip_final_snapshot`, `force_destroy`                                     |
+| 🔴   | `DROP TABLE`, `DROP COLUMN`, `TRUNCATE` in migrations                                                                                                                                                |
+| 🔴   | Privileged pods, `allowPrivilegeEscalation`, `hostNetwork`, `hostPID`, `hostIPC`, `hostPath`                                                                                                         |
+| 🔴   | Capabilities outside the Pod Security Standards baseline (`SYS_ADMIN`, `NET_ADMIN`, `SYS_PTRACE`, `ALL`, …) added in Kubernetes or compose                                                           |
+| 🔴   | `pull_request_target`, `permissions: write-all`                                                                                                                                                      |
+| 🟡   | ClusterRole / ClusterRoleBinding, `LoadBalancer` / `NodePort` services, `hostPort`, root containers                                                                                                  |
+| 🟡   | New write permissions for the workflow token (`contents`, `id-token`, `packages`, …), `secrets: inherit`                                                                                             |
+| 🟡   | `curl … \| sh` / `wget … \| bash` in a Dockerfile or workflow                                                                                                                                        |
+| 🟡   | A deleted Terraform file, or a sensitive file whose diff GitHub did not include                                                                                                                      |
+| 🟢   | `:latest` image tags, `ADD https://…` without `--checksum`, new repository secrets used in a workflow                                                                                                |
+| 🟢   | Third-party actions or reusable workflows referenced by tag or branch instead of a full commit SHA (`actions/*` and `github/*` are left out)                                                         |
 
 ## Safe by design
 
 - **It never runs the pull request's code.** It only reads the list of changed files and their diffs through the API, so it runs on `pull_request`, not `pull_request_target`. On pull requests from forks the token is read-only: the action reports to the job summary and logs a warning instead of failing.
-- **Untrusted text stays inert.** Lines from the diff are rendered inside code spans, so a crafted change can't inject links, mentions or table markup into the comment.
+- **Untrusted text stays inert.** Lines and file names from the diff are rendered inside code spans fenced with more backticks than they contain, with line breaks and table pipes neutralized, so a crafted change can't inject links, mentions or table markup into the comment. File names in check annotations are escaped the same way `@actions/core` escapes command properties, so they can't start a new workflow command.
 - **One comment, updated in place**, found by a hidden marker; the risk label is swapped, not stacked.
 - **Zero runtime dependencies**: plain JavaScript (ESM) on Node 24, type-checked with `tsc --checkJs`. What runs is exactly what you can read in [`src/`](src).
 - In this repository the workflow checks out the base commit, so a pull request cannot change the code that judges it ([`blast-radius.yml`](.github/workflows/blast-radius.yml)).
