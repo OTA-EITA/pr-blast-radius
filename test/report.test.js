@@ -80,3 +80,11 @@ test("a run of backticks or a carriage return cannot close the code span", () =>
   assert.ok(md.includes("| 🟡 Terraform | `x \\| [a](b) \\|.tf` |\n"));
   assert.doesNotMatch(md, /\r/);
 });
+
+test("says how many files were ignored", () => {
+  const quiet = renderComment({ risk: "low", files: 3, ignored: 2, areas: [], findings: [] });
+  assert.match(quiet, /3 file\(s\) changed \(2 ignored\)\. No infrastructure/);
+  const r = analyze(files, { ignore: (p) => p.endsWith(".ts") });
+  assert.match(renderComment(r), /<sub>8 file\(s\) changed \(1 ignored\) · /);
+  assert.doesNotMatch(renderComment(analyze(files)), /ignored/);
+});
