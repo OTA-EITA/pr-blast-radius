@@ -81,12 +81,13 @@ test("third-party actions not pinned to a commit SHA", () => {
 });
 
 test("a downloaded script piped straight into a shell", () => {
-  for (const [file, line] of [
+  /** @type {[string, string][]} */
+  const cases = [
     ["Dockerfile", "RUN curl -fsSL https://get.example.com/install.sh | sh"],
     ["Dockerfile", "RUN wget -qO- https://example.com/setup | sudo -E bash -s -- --yes"],
     [".github/workflows/ci.yml", "        run: curl -sSL https://example.com/i.sh | bash"],
-  ])
-    assert.deepEqual(ids(file, line), ["pipe-to-shell"], line);
+  ];
+  for (const [file, line] of cases) assert.deepEqual(ids(file, line), ["pipe-to-shell"], line);
   for (const line of [
     "RUN curl -fsSLo app.tgz https://example.com/app.tgz && sha256sum -c app.sha256",
     "RUN curl -fsSL https://example.com/app.tgz | tar xz",
