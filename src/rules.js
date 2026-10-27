@@ -203,6 +203,15 @@ export const signals = [
     pattern: /\b(curl|wget)\b[^|#]*\|\s*(sudo\s+(-\S+\s+)*)?(ba|z|da|k)?sh\b/,
     message: "Runs a downloaded script without checking what it is",
   },
+  {
+    // https://docs.docker.com/reference/dockerfile/#add---checksum
+    id: "remote-add",
+    risk: "low",
+    areas: ["containers"],
+    op: "+",
+    pattern: /^\s*ADD\s+(?![^#]*--checksum=)(--\S+\s+)*["']?https?:\/\//i,
+    message: "Downloads a remote file without pinning its checksum (ADD --checksum)",
+  },
   // CI/CD
   {
     id: "pull-request-target",
