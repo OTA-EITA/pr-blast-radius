@@ -28,7 +28,11 @@ import { areas, signals } from "./rules.js";
  * @property {Risk} risk
  * @property {AreaResult[]} areas
  * @property {Finding[]} findings
- * @property {number} files
+ * @property {number} files      Changed files, ignored ones included.
+ * @property {number} [ignored]  Files left out by the ignore option.
+ *
+ * @typedef {object} Options
+ * @property {(path: string) => boolean} [ignore]  Paths to leave out (a file moved across counts only if both paths match).
  */
 
 /** @type {Record<Risk, number>} */
@@ -46,15 +50,21 @@ export function areaOf(path) {
 
 /**
  * @param {ChangedFile[]} files
+ * @param {Options} [opt]
  * @returns {Result}
  */
-export function analyze(files) {
+export function analyze(files, opt = {}) {
   /** @type {Map<string, AreaResult>} */
   const touched = new Map();
   /** @type {Finding[]} */
   const findings = [];
+  let ignored = 0;
 
   for (const f of files) {
+    if (opt.ignore?.(f.filename) && (f.previous_filename === undefined || opt.ignore(f.previous_filename))) {
+      ignored++;
+      continue;
+    }
     const area = areaOf(f.filename) ?? (f.previous_filename ? areaOf(f.previous_filename) : undefined);
     if (area) {
       const r = touched.get(area.id) ?? { id: area.id, title: area.title, risk: area.risk, files: [] };
@@ -112,5 +122,6 @@ export function analyze(files) {
     areas: areaList,
     findings: kept,
     files: files.length,
+    ignored,
   };
 }
