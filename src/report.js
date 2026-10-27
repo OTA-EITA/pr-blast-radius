@@ -4,10 +4,18 @@ export const marker = "<!-- pr-blast-radius -->";
 /** @type {Record<import("./rules.js").Risk, string>} */
 const badge = { high: "🔴 High", medium: "🟡 Medium", low: "🟢 Low" };
 
-/** Text from the diff is untrusted: keep it inside inline code and out of table syntax. @param {string} s */
+/**
+ * Text from the diff is untrusted: keep it inside inline code and out of table syntax.
+ * The fence is one backtick longer than any run inside, so the text cannot close it,
+ * and every line ending becomes a space, so it cannot end a table row.
+ * @param {string} s
+ */
 function code(s) {
-  const clean = s.replaceAll("|", "\\|").replaceAll("\n", " ");
-  return clean.includes("`") ? `\`\` ${clean} \`\`` : `\`${clean}\``;
+  const clean = s.replaceAll("|", "\\|").replaceAll(/\r\n?|\n/g, " ");
+  const longest = Math.max(0, ...(clean.match(/`+/g) ?? []).map((run) => run.length));
+  if (!longest) return `\`${clean}\``;
+  const fence = "`".repeat(longest + 1);
+  return `${fence} ${clean} ${fence}`;
 }
 
 /**
