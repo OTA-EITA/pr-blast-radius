@@ -66,7 +66,7 @@ export const areas = [
     id: "dependencies",
     title: "Dependencies",
     risk: "low",
-    path: /(^|\/)(package(-lock)?\.json|pnpm-lock\.yaml|yarn\.lock|go\.(mod|sum)|requirements[\w.-]*\.txt|poetry\.lock|Pipfile(\.lock)?|Gemfile(\.lock)?|composer\.(json|lock)|Cargo\.(toml|lock))$/,
+    path: /(^|\/)(package(-lock)?\.json|pnpm-lock\.yaml|yarn\.lock|go\.(mod|sum)|requirements[\w.-]*\.txt|poetry\.lock|Pipfile(\.lock)?|Gemfile(\.lock)?|composer\.(json|lock)|Cargo\.(toml|lock)|\.github\/dependabot\.ya?ml|renovate\.json5?|\.renovaterc(\.json5?)?)$/,
   },
 ];
 
