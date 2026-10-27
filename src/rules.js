@@ -229,6 +229,16 @@ export const signals = [
     message: "Passes every repository secret to a reusable workflow",
   },
   {
+    // GitHub's hardening guide: pin actions to a full-length commit SHA. actions/* and
+    // github/* are left out to keep the noise down; local and docker:// steps have no ref.
+    id: "unpinned-action",
+    risk: "low",
+    areas: ["workflows"],
+    op: "+",
+    pattern: /^\s*(-\s*)?uses:\s*["']?(?!\.|docker:|(actions|github)\/)[\w.-]+\/[^@\s"']+@(?![0-9a-f]{40}\b)/,
+    message: "Uses a third-party action or workflow by a tag or branch, not a commit SHA",
+  },
+  {
     id: "secrets-in-workflow",
     risk: "low",
     areas: ["workflows"],
