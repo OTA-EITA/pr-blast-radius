@@ -221,6 +221,14 @@ export const signals = [
     message: "Gives the workflow token a write permission",
   },
   {
+    id: "secrets-inherit",
+    risk: "medium",
+    areas: ["workflows"],
+    op: "+",
+    pattern: /^\s*secrets:\s*inherit\b/,
+    message: "Passes every repository secret to a reusable workflow",
+  },
+  {
     id: "secrets-in-workflow",
     risk: "low",
     areas: ["workflows"],
