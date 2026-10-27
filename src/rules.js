@@ -124,6 +124,15 @@ export const signals = [
     message: "Makes a resource publicly reachable",
   },
   {
+    id: "public-resource",
+    risk: "high",
+    areas: ["cloudformation"],
+    op: "+",
+    pattern:
+      /"?(PubliclyAccessible|MapPublicIpOnLaunch)"?\s*:\s*["']?true\b|"?(BlockPublicAcls|BlockPublicPolicy|IgnorePublicAcls|RestrictPublicBuckets)"?\s*:\s*["']?false\b|AccessControl"?\s*:\s*["']?PublicRead/,
+    message: "Makes a resource publicly reachable",
+  },
+  {
     id: "load-balancer-service",
     risk: "medium",
     areas: ["kubernetes"],
@@ -155,6 +164,22 @@ export const signals = [
     areas: ["terraform"],
     op: "-",
     pattern: /(deletion_protection|prevent_destroy)\s*=\s*true/,
+    message: "Removes protection against deleting data",
+  },
+  {
+    id: "protection-disabled",
+    risk: "high",
+    areas: ["cloudformation"],
+    op: "+",
+    pattern: /"?DeletionProtection(Enabled)?"?\s*:\s*["']?false\b/,
+    message: "Turns off protection against deleting data",
+  },
+  {
+    id: "protection-removed",
+    risk: "high",
+    areas: ["cloudformation"],
+    op: "-",
+    pattern: /"?DeletionProtection(Enabled)?"?\s*:\s*["']?true\b|"?(DeletionPolicy|UpdateReplacePolicy)"?\s*:\s*["']?(Retain|Snapshot)/,
     message: "Removes protection against deleting data",
   },
   {
