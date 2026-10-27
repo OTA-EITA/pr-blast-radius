@@ -115,3 +115,21 @@ test("does nothing outside pull request events", async () => {
   assert.equal(s.f.calls.length, 0);
   assert.match(s.log(), /runs on pull_request events/);
 });
+
+test("escapes file names in workflow command properties", async () => {
+  const filename = "infra/a,b:c%\n::error::pwned.tf";
+  const s = setup(
+    { comment: "false", label: "false" },
+    {
+      [`GET ${base}/pulls/7/files`]: () => ({
+        body: [{ filename, status: "added", patch: '@@ -0,0 +1 @@\n+cidr_blocks = ["0.0.0.0/0"]' }],
+      }),
+    },
+  );
+  await s.go();
+  assert.match(
+    s.log(),
+    /^::warning file=infra\/a%2Cb%3Ac%25%0A%3A%3Aerror%3A%3Apwned\.tf,line=1,title=open-to-internet::/m,
+  );
+  assert.doesNotMatch(s.log(), /^::error::/m);
+});
