@@ -113,3 +113,30 @@ test("dependency bot configuration counts as a dependency change", () => {
   for (const p of [".github/dependabot.yml", "renovate.json", ".github/renovate.json5", ".renovaterc.json"])
     assert.equal(areaOf(p)?.id, "dependencies", p);
 });
+
+test("ignored paths are left out but counted", () => {
+  const ignore = (/** @type {string} */ p) => p.startsWith("test/fixtures/");
+  const r = analyze(
+    [
+      {
+        filename: "test/fixtures/sg.tf",
+        status: "added",
+        patch: '@@ -0,0 +1 @@\n+cidr_blocks = ["0.0.0.0/0"]',
+      },
+      { filename: "src/a.ts", status: "modified", patch: "@@ -1 +1 @@\n+x" },
+    ],
+    { ignore },
+  );
+  assert.deepEqual([r.risk, r.areas, r.findings, r.files, r.ignored], ["low", [], [], 2, 1]);
+  assert.equal(analyze(files).ignored, 0);
+});
+
+test("a file moved out of an ignored path into a sensitive one is still checked", () => {
+  const ignore = (/** @type {string} */ p) => p.startsWith("vendor/");
+  const moved = { filename: "infra/a.tf", previous_filename: "vendor/a.tf", status: "renamed" };
+  assert.equal(analyze([moved], { ignore }).areas[0]?.id, "terraform");
+  const inside = { filename: "vendor/b.tf", previous_filename: "vendor/a.tf", status: "renamed" };
+  assert.equal(analyze([inside], { ignore }).ignored, 1);
+  const out = { filename: "vendor/b.tf", previous_filename: "infra/a.tf", status: "renamed" };
+  assert.equal(analyze([out], { ignore }).areas[0]?.id, "terraform");
+});
