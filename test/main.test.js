@@ -133,3 +133,14 @@ test("escapes file names in workflow command properties", async () => {
   );
   assert.doesNotMatch(s.log(), /^::error::/m);
 });
+
+test("ignore-paths leaves matching files out", async () => {
+  const s = setup({ "ignore-paths": "infra/**\n# CI is reviewed elsewhere\n.github/workflows/, *.json" });
+  await s.go();
+  assert.equal(
+    readFileSync(path.join(s.dir, "output"), "utf8"),
+    "risk=high\nareas=migrations,kubernetes\nfindings=3\n",
+  );
+  assert.match(readFileSync(path.join(s.dir, "summary"), "utf8"), /8 file\(s\) changed \(5 ignored\)/);
+  assert.match(s.log(), /blast radius: high \(2 area\(s\), 3 finding\(s\), 5 file\(s\) ignored\)/);
+});
