@@ -66,7 +66,14 @@ test("a run of backticks or a carriage return cannot close the code span", () =>
     files: 1,
     areas: [{ id: "terraform", title: "Terraform", risk: "medium", files: ["x\r| [a](b) |.tf"] }],
     findings: [
-      { id: "x", risk: "high", file: "a.tf", line: 2, message: "m", text: "a `` [click](https://evil) ``` @here" },
+      {
+        id: "x",
+        risk: "high",
+        file: "a.tf",
+        line: 2,
+        message: "m",
+        text: "a `` [click](https://evil) ``` @here",
+      },
     ],
   });
   assert.ok(md.includes("- 🔴 m — `a.tf:2` ```` a `` [click](https://evil) ``` @here ````\n"));
