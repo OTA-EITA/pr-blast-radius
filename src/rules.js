@@ -179,7 +179,8 @@ export const signals = [
     risk: "high",
     areas: ["cloudformation"],
     op: "-",
-    pattern: /"?DeletionProtection(Enabled)?"?\s*:\s*["']?true\b|"?(DeletionPolicy|UpdateReplacePolicy)"?\s*:\s*["']?(Retain|Snapshot)/,
+    pattern:
+      /"?DeletionProtection(Enabled)?"?\s*:\s*["']?true\b|"?(DeletionPolicy|UpdateReplacePolicy)"?\s*:\s*["']?(Retain|Snapshot)/,
     message: "Removes protection against deleting data",
   },
   {
@@ -196,8 +197,7 @@ export const signals = [
     risk: "high",
     areas: ["kubernetes"],
     op: "+",
-    pattern:
-      /privileged:\s*true|allowPrivilegeEscalation:\s*true|host(Network|PID|IPC):\s*true|hostPath:/,
+    pattern: /privileged:\s*true|allowPrivilegeEscalation:\s*true|host(Network|PID|IPC):\s*true|hostPath:/,
     message: "Gives a workload access to the node",
   },
   {
