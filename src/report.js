@@ -25,9 +25,10 @@ function code(s) {
 export function renderComment(r, opt = {}) {
   const max = opt.maxFindings ?? 30;
   const out = [marker, `### Blast radius: ${badge[r.risk]}`, ""];
+  const changed = `${String(r.files)} file(s) changed${r.ignored ? ` (${String(r.ignored)} ignored)` : ""}`;
 
   if (!r.areas.length && !r.findings.length) {
-    out.push(`${String(r.files)} file(s) changed. No infrastructure, CI, access or data changes found.`);
+    out.push(`${changed}. No infrastructure, CI, access or data changes found.`);
     return out.join("\n") + "\n";
   }
 
@@ -54,7 +55,7 @@ export function renderComment(r, opt = {}) {
   }
 
   out.push(
-    `<sub>${String(r.files)} file(s) changed · [pr-blast-radius](https://github.com/OTA-EITA/pr-blast-radius) reads the diff only and never runs the pull request's code</sub>`,
+    `<sub>${changed} · [pr-blast-radius](https://github.com/OTA-EITA/pr-blast-radius) reads the diff only and never runs the pull request's code</sub>`,
   );
   return out.join("\n") + "\n";
 }
