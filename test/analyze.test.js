@@ -91,3 +91,25 @@ test("does not flag secrets.GITHUB_TOKEN", () => {
   assert.deepEqual(ids("token: ${{ secrets.GITHUB_TOKEN }}"), []);
   assert.deepEqual(ids("token: ${{ secrets.DEPLOY_KEY }}"), ["secrets-in-workflow"]);
 });
+
+test("classifies CloudFormation, SAM and Serverless templates", () => {
+  for (const p of [
+    "template.yaml",
+    "services/api/template.yml",
+    "serverless.yml",
+    "samconfig.toml",
+    "cloudformation/network.json",
+    "infra/cfn/db.yaml",
+    "stacks/vpc.cfn.yaml",
+    "stacks/vpc.template.json",
+    "deploy/template.yaml",
+  ])
+    assert.equal(areaOf(p)?.id, "cloudformation", p);
+  assert.equal(areaOf("charts/api/templates/deployment.yaml")?.id, "kubernetes");
+  assert.equal(areaOf("src/template.json"), undefined);
+});
+
+test("dependency bot configuration counts as a dependency change", () => {
+  for (const p of [".github/dependabot.yml", "renovate.json", ".github/renovate.json5", ".renovaterc.json"])
+    assert.equal(areaOf(p)?.id, "dependencies", p);
+});
