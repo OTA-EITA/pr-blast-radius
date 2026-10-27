@@ -195,6 +195,14 @@ export const signals = [
     pattern: /(FROM|image:)\s*\S+:latest\b/,
     message: "Uses a mutable :latest image tag",
   },
+  {
+    id: "pipe-to-shell",
+    risk: "medium",
+    areas: ["containers", "workflows"],
+    op: "+",
+    pattern: /\b(curl|wget)\b[^|#]*\|\s*(sudo\s+(-\S+\s+)*)?(ba|z|da|k)?sh\b/,
+    message: "Runs a downloaded script without checking what it is",
+  },
   // CI/CD
   {
     id: "pull-request-target",
