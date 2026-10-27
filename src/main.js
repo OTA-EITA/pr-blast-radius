@@ -20,6 +20,8 @@ function input(env, name, fallback) {
 // https://docs.github.com/actions/reference/workflow-commands-for-github-actions
 /** @param {string} s */
 const escapeData = (s) => s.replaceAll("%", "%25").replaceAll("\r", "%0D").replaceAll("\n", "%0A");
+/** Property values (file=...) also end at ":" and ",". @param {string} s */
+const escapeProperty = (s) => escapeData(s).replaceAll(":", "%3A").replaceAll(",", "%2C");
 
 /**
  * @param {Deps} deps
@@ -55,7 +57,7 @@ export async function run({ env, log, fetchImpl }) {
   }
   for (const f of result.findings.filter((x) => x.risk !== "low")) {
     const level = f.risk === "high" ? "warning" : "notice";
-    const where = f.line ? `file=${f.file},line=${String(f.line)},` : "";
+    const where = f.line ? `file=${escapeProperty(f.file)},line=${String(f.line)},` : "";
     log(`::${level} ${where}title=${f.id}::${escapeData(f.message)}\n`);
   }
 
