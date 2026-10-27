@@ -105,3 +105,34 @@ test("ADD of a remote URL without a checksum", () => {
   ])
     assert.deepEqual(ids("Dockerfile", line), [], line);
 });
+
+test("CloudFormation: public resources and turned-off protection", () => {
+  for (const line of [
+    "      PubliclyAccessible: true",
+    '      "PubliclyAccessible": "true",',
+    "        RestrictPublicBuckets: false",
+    "      MapPublicIpOnLaunch: true",
+    "      AccessControl: PublicReadWrite",
+  ])
+    assert.deepEqual(ids("template.yaml", line), ["public-resource"], line);
+  assert.deepEqual(ids("template.yaml", "      DeletionProtection: false"), ["protection-disabled"]);
+  assert.deepEqual(ids("template.yaml", "      DeletionProtectionEnabled: false"), ["protection-disabled"]);
+  assert.deepEqual(ids("template.yaml", "    DeletionPolicy: Retain", "-"), ["protection-removed"]);
+  assert.deepEqual(ids("template.yaml", "      PubliclyAccessible: false"), []);
+  assert.deepEqual(ids("template.yaml", "    DeletionPolicy: Retain"), []);
+  assert.deepEqual(ids("k8s/api.yaml", "      PubliclyAccessible: true"), []);
+});
+
+test("CloudFormation: flipping DeletionProtection is reported once", () => {
+  const r = analyze([
+    {
+      filename: "template.yaml",
+      status: "modified",
+      patch: "@@ -8,1 +8,1 @@\n-      DeletionProtection: true\n+      DeletionProtection: false",
+    },
+  ]);
+  assert.deepEqual(
+    r.findings.map((f) => `${f.id}:${String(f.line)}`),
+    ["protection-disabled:8"],
+  );
+});
