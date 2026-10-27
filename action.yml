@@ -21,6 +21,9 @@ inputs:
   fail-on:
     description: Fail the check at this risk or above (high, medium, low or none)
     default: none
+  ignore-paths:
+    description: Paths to leave out, as globs separated by newlines or commas (for example test fixtures or vendored code)
+    default: ""
 
 outputs:
   risk:
