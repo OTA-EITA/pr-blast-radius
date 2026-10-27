@@ -40,3 +40,16 @@ test("host namespaces and host ports", () => {
   assert.deepEqual(ids("k8s/ds.yaml", "              hostPort: 0"), []);
   assert.deepEqual(ids("k8s/ds.yaml", "              containerPort: 8080"), []);
 });
+
+test("every S3 public access block flag and public GCP members", () => {
+  for (const line of [
+    "  ignore_public_acls      = false",
+    "  restrict_public_buckets = false",
+    "  block_public_policy     = false",
+    '  member = "allUsers"',
+    '  members = ["allAuthenticatedUsers"]',
+  ])
+    assert.deepEqual(ids("infra/storage.tf", line), ["public-resource"], line);
+  for (const line of ["  restrict_public_buckets = true", '  member = "user:ops@example.com"'])
+    assert.deepEqual(ids("infra/storage.tf", line), [], line);
+});
