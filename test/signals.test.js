@@ -32,3 +32,11 @@ test("dropping capabilities or adding baseline ones is fine", () => {
     assert.deepEqual(ids("k8s/api.yaml", line), [], line);
   assert.deepEqual(ids("config/app.yaml", "  add: [SYS_ADMIN]"), []);
 });
+
+test("host namespaces and host ports", () => {
+  assert.deepEqual(ids("k8s/ds.yaml", "      hostIPC: true"), ["privileged-pod"]);
+  assert.deepEqual(ids("k8s/ds.yaml", "      hostIPC: false"), []);
+  assert.deepEqual(ids("k8s/ds.yaml", "              hostPort: 8080"), ["host-port"]);
+  assert.deepEqual(ids("k8s/ds.yaml", "              hostPort: 0"), []);
+  assert.deepEqual(ids("k8s/ds.yaml", "              containerPort: 8080"), []);
+});
