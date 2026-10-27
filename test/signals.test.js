@@ -79,3 +79,29 @@ test("third-party actions not pinned to a commit SHA", () => {
     assert.deepEqual(ids(wf, line), [], line);
   assert.deepEqual(ids("action.yml", "    - uses: some-org/setup-thing@v2"), ["unpinned-action"]);
 });
+
+test("a downloaded script piped straight into a shell", () => {
+  for (const [file, line] of [
+    ["Dockerfile", "RUN curl -fsSL https://get.example.com/install.sh | sh"],
+    ["Dockerfile", "RUN wget -qO- https://example.com/setup | sudo -E bash -s -- --yes"],
+    [".github/workflows/ci.yml", "        run: curl -sSL https://example.com/i.sh | bash"],
+  ])
+    assert.deepEqual(ids(file, line), ["pipe-to-shell"], line);
+  for (const line of [
+    "RUN curl -fsSLo app.tgz https://example.com/app.tgz && sha256sum -c app.sha256",
+    "RUN curl -fsSL https://example.com/app.tgz | tar xz",
+    "RUN curl -fsSL https://example.com/app.tgz | shasum -a 256",
+  ])
+    assert.deepEqual(ids("Dockerfile", line), [], line);
+  assert.deepEqual(ids("scripts/setup.sh", "curl -fsSL https://x | sh"), []);
+});
+
+test("ADD of a remote URL without a checksum", () => {
+  assert.deepEqual(ids("Dockerfile", "ADD https://example.com/tool.tgz /opt/"), ["remote-add"]);
+  assert.deepEqual(ids("api.dockerfile", "add --chown=app http://example.com/x /x"), ["remote-add"]);
+  for (const line of [
+    "ADD --checksum=sha256:24454f830cdb571e2c4ad15481119c43b3cafd48dd869a9b2945d1036d1dc68d https://example.com/tool.tgz /opt/",
+    "ADD ./tool.tgz /opt/",
+  ])
+    assert.deepEqual(ids("Dockerfile", line), [], line);
+});
