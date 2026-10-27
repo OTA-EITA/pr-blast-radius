@@ -161,6 +161,17 @@ export const signals = [
     message: "Gives a workload access to the node",
   },
   {
+    // Outside the Pod Security Standards baseline list. A bare "- ALL" is not matched:
+    // it is far more often under drop than under add.
+    id: "dangerous-capability",
+    risk: "high",
+    areas: ["kubernetes", "containers"],
+    op: "+",
+    pattern:
+      /\b(cap_)?add:\s*\[[^\]]*\b(ALL|(CAP_)?(SYS_ADMIN|NET_ADMIN|SYS_PTRACE|SYS_MODULE|SYS_RAWIO|DAC_READ_SEARCH|BPF))\b|^\s*-\s*["']?(CAP_)?(SYS_ADMIN|NET_ADMIN|SYS_PTRACE|SYS_MODULE|SYS_RAWIO|DAC_READ_SEARCH|BPF)["']?\s*$/,
+    message: "Adds a Linux capability that gives a container control over the node",
+  },
+  {
     id: "root-container",
     risk: "medium",
     areas: ["containers", "kubernetes"],
