@@ -27,7 +27,7 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: OTA-EITA/pr-blast-radius@v0.1.0 # pin to a commit SHA in real use
+      - uses: OTA-EITA/pr-blast-radius@v0.2.0 # pin to a commit SHA in real use
 ```
 
 That's it: no checkout, no build, no dependencies to install.
@@ -46,7 +46,7 @@ Outputs: `risk`, `areas` (comma separated) and `findings` (count), for example t
 `ignore-paths` keeps test fixtures, examples or vendored code from raising false alarms:
 
 ```yaml
-- uses: OTA-EITA/pr-blast-radius@v0.1.0
+- uses: OTA-EITA/pr-blast-radius@v0.2.0
   with:
     ignore-paths: |
       test/fixtures/**
