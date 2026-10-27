@@ -38,6 +38,13 @@ export const areas = [
   },
   { id: "terraform", title: "Terraform", risk: "medium", path: /\.(tf|tfvars|hcl)$/ },
   {
+    // Before Kubernetes, so deploy/template.yaml is read as a SAM template.
+    id: "cloudformation",
+    title: "CloudFormation, SAM and Serverless",
+    risk: "medium",
+    path: /(^|\/)(cloudformation|cfn)\/.+\.(ya?ml|json)$|(^|\/)(template|serverless)\.ya?ml$|(^|\/)samconfig\.toml$|\.(cfn|template)\.(ya?ml|json)$/,
+  },
+  {
     id: "kubernetes",
     title: "Kubernetes and Helm",
     risk: "medium",
