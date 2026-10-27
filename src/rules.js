@@ -124,6 +124,14 @@ export const signals = [
     pattern: /type:\s*(LoadBalancer|NodePort)\b/,
     message: "Exposes a Service outside the cluster",
   },
+  {
+    id: "host-port",
+    risk: "medium",
+    areas: ["kubernetes"],
+    op: "+",
+    pattern: /hostPort:\s*["']?[1-9]/,
+    message: "Binds a container port on the node itself",
+  },
   // Data loss
   {
     id: "protection-disabled",
@@ -157,7 +165,7 @@ export const signals = [
     areas: ["kubernetes"],
     op: "+",
     pattern:
-      /privileged:\s*true|allowPrivilegeEscalation:\s*true|hostNetwork:\s*true|hostPID:\s*true|hostPath:/,
+      /privileged:\s*true|allowPrivilegeEscalation:\s*true|host(Network|PID|IPC):\s*true|hostPath:/,
     message: "Gives a workload access to the node",
   },
   {
