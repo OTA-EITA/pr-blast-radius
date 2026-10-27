@@ -59,3 +59,17 @@ test("truncates long lists", () => {
     /…and 1 more/,
   );
 });
+
+test("a run of backticks or a carriage return cannot close the code span", () => {
+  const md = renderComment({
+    risk: "high",
+    files: 1,
+    areas: [{ id: "terraform", title: "Terraform", risk: "medium", files: ["x\r| [a](b) |.tf"] }],
+    findings: [
+      { id: "x", risk: "high", file: "a.tf", line: 2, message: "m", text: "a `` [click](https://evil) ``` @here" },
+    ],
+  });
+  assert.ok(md.includes("- 🔴 m — `a.tf:2` ```` a `` [click](https://evil) ``` @here ````\n"));
+  assert.ok(md.includes("| 🟡 Terraform | `x \\| [a](b) \\|.tf` |\n"));
+  assert.doesNotMatch(md, /\r/);
+});
